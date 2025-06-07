@@ -25,7 +25,7 @@
 *
 * in    : 
 *
-* out   : 鏃�
+* out   : 
 *
 * return: 
 *
@@ -43,7 +43,7 @@ uint32 common_get_local_ip_addr(void)
 *
 * in    : 
 *
-* out   : 鏃�
+* out   : 
 *
 * return: 
 *

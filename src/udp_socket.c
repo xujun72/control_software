@@ -996,7 +996,7 @@ static void* UdpThreadTldsRecv(void)
 }
 
 
-pthread_mutex_t mutex;
+pthread_mutex_t udp_mutex;
 
 int udp_init(void)
 {
@@ -1022,7 +1022,7 @@ int udp_init(void)
 	memset(&LastUdpInspectionInfo,0,sizeof(UDP_PROTOCOL_INFO));
 	memset(&CurUdpInspectionInfo,0,sizeof(UDP_PROTOCOL_INFO));
 	pthread_t t1,t2;
-	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_init(&udp_mutex, NULL);
 	// pthread_create(&t1, NULL, (void*)MyPingThread, NULL);
 	pthread_create(&t1, NULL, (void*)UdpThreadTdsRecv, NULL);	//巡检系统
 	pthread_create(&t2, NULL, (void*)UdpThreadTldsRecv, NULL);//几何系统

@@ -83,7 +83,8 @@ static void alg_receiver(zmq::socket_t& socket) {
     }
 }
 
-static void alg_monitor_udpdata(void) {
+static void alg_monitor_udpdata(void) 
+{
     SendDataItem newdata;
     while(1)
     {
@@ -98,6 +99,7 @@ static void alg_monitor_udpdata(void) {
     }   
 }
 
+//清楚枕木数量
 void alg_clearwood(void)
 {
     wood_number = 0;
@@ -110,6 +112,7 @@ static void alg_addwood_number(int h_val)
     num = h_val * 10 / WOOD_HEIGHT;
 
     wood_number += num;
+    std::cout << "alg_addwood_number: " << wood_number << std::endl;
 }
 
 //通过枕木计算距离
@@ -123,8 +126,13 @@ static void alg_calc_distance(std::string& folder_name,std::string& file_name)
 
     distance_wood_calc = wood_number / 10 * WOOD_SPACE_DISTANCE;
     //
-    if(abs(distance_file_recv-distance_wood_calc) < 5)
+    uint32_t diff = (distance_file_recv > distance_wood_calc)
+                    ? (distance_file_recv - distance_wood_calc)
+                    : (distance_wood_calc - distance_file_recv);
+    if (diff < 5)
     {
+        std::cout << "distance_wood_calc: " << distance_wood_calc <<
+        "distance_file_recv:" << distance_file_recv << std::endl;
         newname = pic_filename_updatedistance(file_name,distance_wood_calc);
         pic_rename(folder_name+newname,folder_name+file_name);
     }

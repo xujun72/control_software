@@ -72,6 +72,8 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "algorithm_process.hpp": "c",
-        "config.hpp": "c"
+        "config.hpp": "c",
+        "vos_thread.h": "c",
+        "pthread.h": "c"
     }
 }
