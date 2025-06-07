@@ -11,42 +11,23 @@ extern "C" {
 RecvDataQueue recvQueue;
 SendDataQueue sendQueue;
 
-uint16_t sleeper_number;
+//枕木数量计算 分辨率0.1
+uint16_t wood_number;
+//站点更新，枕木重新计算
+uint8_t newstation_flag;
+//从文件名中获取距离
+uint32_t distance_file_recv;
+//通过枕木数量计算得出距离
+uint32_t distance_wood_calc;
 
 static void initdata()
 {
-    sleeper_number = 0;
+    wood_number = 0;
+    newstation_flag = 0;
+    distance_file_recv = 0;
+    distance_wood_calc = 0;
+    memset(&PicPathFromIspection,0x00,sizeof(PIC_PATH_FROM_TDS));
 }
-
-void producer() {
-    for (int i = 0; i < 5; ++i) {
-        RecvDataItem item;
-        item.path = "E:\\data\\img_" + std::to_string(i) + ".jpg";
-        item.error = "";
-        item.faultlist = {
-            {
-                "fault_" + std::to_string(i),
-                {
-                    {1, 0, 10, 20, 30, 40, 0.9f, 1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f}
-                },
-                {"key1", "key2"}
-            }
-        };
-        recvQueue.push(item);
-        std::cout << "Produced: " << item.path << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    }
-}
-
-// 模拟消费线程
-// void consumer() {
-//     for (int i = 0; i < 5; ++i) {
-//         RecvDataItem item = recvQueue.pop();
-//         std::cout << "Consumed: " << item.path
-//                   << ", fault name: " << item.faultlist[0].name
-//                   << ", key[0]: " << item.faultlist[0].keys[0] << std::endl;
-//     }
-// }
 
 void consumer() {
     while (true) {

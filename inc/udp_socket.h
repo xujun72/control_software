@@ -60,8 +60,8 @@ typedef struct  _PIC_PATH_FROM_TDS
 
     uint8  tds_pic_path[512];   //巡检系统自检
     uint16 len;
+    uint8 newdata_flag;
 }PIC_PATH_FROM_TDS;
-//extern PIC_PATH_FROM_TDS PicPathFromIspection[200];
 
 
 typedef struct  _INFO_FROM_ALGORITHM
@@ -118,7 +118,7 @@ typedef struct  _INFO_FROM_TLDS
 }INFO_FROM_TLDS;
 
 int udp_init(void);
-
+extern PIC_PATH_FROM_TDS PicPathFromIspection;
 extern int ParseUdpInspectionInfo(uint8 *buffer, uint16 len);
 extern int SendMultidata(uint16 multi_port,uint8 *sndbuff,uint16 datalen);
 extern int CreateMultiRecv(uint16 multircv_port,uint8 eth_num,uint8* multi_addr);
@@ -129,6 +129,8 @@ extern int CreateSingleRecv(uint16 port);
 extern int getLocalHostIP(char *ipaddr, int interface);
 int create_localServer(char *serverpath);
 extern int send_broadcastdata(uint16 broadcast_port,uint8 *sndbuff,uint16 datalen);
+
+void udp_clear_newdataflag();
 
 #ifdef __cplusplus
 }

@@ -61,7 +61,7 @@ char* GwIpAddress = {"192.168.11.14"};//change ip for gw
 //static pthread_rwlock_t RecvInfoFlag = PTHREAD_RWLOCK_INITIALIZER;
 char RecvInfoFlag=0;
 UDP_PROTOCOL_INFO LastUdpInspectionInfo,CurUdpInspectionInfo;
-PIC_PATH_FROM_TDS PicPathFromIspection[200];
+PIC_PATH_FROM_TDS PicPathFromIspection;
 
 
 unsigned int HeartBeatTime = 0;
@@ -845,8 +845,9 @@ int ParseUdpInspectionInfo(uint8 *buffer, uint16 len)
 	{
 		if(info_from_tds.tds_pic_deal_finish)
 		{
-			PicPathFromIspection->len = strlen(udp_info->data);
-			strcpy(&PicPathFromIspection->tds_pic_path[1],udp_info->data);
+			PicPathFromIspection.len = strlen(udp_info->data);
+			strcpy(PicPathFromIspection.tds_pic_path[0],udp_info->data);
+			PicPathFromIspection.newdata_flag = 1;
 		}
 		else
 		{
@@ -864,6 +865,14 @@ int ParseUdpInspectionInfo(uint8 *buffer, uint16 len)
 		printf("get cmd:%02x\n",udp_info->cmd);
 	}
 }
+
+void udp_clear_newdataflag()
+{
+	PicPathFromIspection.newdata_flag = 0;
+	memset(&PicPathFromIspection,0x00,sizeof(PIC_PATH_FROM_TDS));
+}
+
+
 
 static void* UdpThreadTdsRecv(void)
 {

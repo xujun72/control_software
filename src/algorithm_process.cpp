@@ -1,6 +1,10 @@
+#include "config.hpp"
 #include "algorithm_process.hpp"
 
-
+extern "C" {
+    #include "udp_socket.h"
+    #include "trdp.h"
+}
 #include <atomic>
 #include <chrono>
 
@@ -31,6 +35,10 @@ static void alg_receiver(zmq::socket_t& socket) {
                 {
                     Recv_faultlist fault;
                     fault.name = item["name"];
+                    //通过图片命名获取距离
+                    distance_file_recv = pic_distance(fault.name);
+                    //通过枕木计算距离
+                    alg_calc_distance(result.path,fault.name);
 
                     for (const auto& bbox_item : item["bbox"]) 
                     {
@@ -44,12 +52,19 @@ static void alg_receiver(zmq::socket_t& socket) {
                         picinfo.w = std::stoi(bbox_item[4].get<std::string>());
                         picinfo.h = std::stoi(bbox_item[5].get<std::string>());
 
+                        if((picinfo.part_label == 3) && (picinfo.fault_label == 10))
+                        {
+                            alg_addwood_number(picinfo.h);
+                        }
+
                         fault.picinfo.push_back(picinfo);
                     }
 
                     result.faultlist.push_back(fault);
                 }
                 recvQueue.push(result);
+
+                //将算法识别的故障信息写到地面故障结构体，等待发往地面
                 groundcomm_set_faultdata(result,DETECT_INSPECTION);
                 std::cout << "Path: " << result.path << "\n";
                 for (const auto& f : result.faultlist) {
@@ -68,6 +83,54 @@ static void alg_receiver(zmq::socket_t& socket) {
     }
 }
 
+static void alg_monitor_udpdata(void) {
+    SendDataItem newdata;
+    while(1)
+    {
+        if(PicPathFromIspection.newdata_flag == 1)
+        {
+            newdata.path = std::string(reinterpret_cast<const char*>(PicPathFromIspection.tds_pic_path), PicPathFromIspection.len);
+            newdata.keys.assign(1, "key");
+            sendQueue.push(newdata);
+            udp_clear_newdataflag();
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }   
+}
+
+void alg_clearwood(void)
+{
+    wood_number = 0;
+}
+
+//计算枕木数
+static void alg_addwood_number(int h_val)
+{
+    uint8_t num;
+    num = h_val * 10 / WOOD_HEIGHT;
+
+    wood_number += num;
+}
+
+//通过枕木计算距离
+static void alg_calc_distance(std::string& folder_name,std::string& file_name)
+{
+    std::string newname;
+
+    if (!folder_name.empty() && folder_name.back() != '/') {
+        folder_name += '/';
+    }
+
+    distance_wood_calc = wood_number / 10 * WOOD_SPACE_DISTANCE;
+    //
+    if(abs(distance_file_recv-distance_wood_calc) < 5)
+    {
+        newname = pic_filename_updatedistance(file_name,distance_wood_calc);
+        pic_rename(folder_name+newname,folder_name+file_name);
+    }
+}
+
+
 void alg_main()
 {
     zmq::context_t ctx(1);
@@ -80,11 +143,13 @@ void alg_main()
     // 启动接收线程
     std::thread t_rec(alg_receiver, std::ref(socket));
     t_rec.detach();
+    // 创建监听进程，等待udp新数据接受
+    std::thread t_monitor(alg_monitor_udpdata);
+    t_monitor.detach();
     // 主线程持续发送请求
     while (true) {
 
-        
-
+    #ifdef TEST_VERSION
         json req;
         req["path"] = "/to/your/path/1";
         req["key1"] = "key1";
@@ -94,18 +159,19 @@ void alg_main()
         
         socket.send(msg, zmq::send_flags::dontwait); // 非阻塞发送
         std::cout << "Sent request: " << req["path"] << std::endl;
-        
-
         SendDataItem item = sendQueue.pop();//阻塞式，等待新的数据
-        // json req;
-        // req["path"] = item.path;
-        // req["key1"] = "key1";
+    #else
+        SendDataItem item = sendQueue.pop();//阻塞式，等待新的数据
+
+        json req;
+        req["path"] = item.path;
+        req["key1"] = "key1";
         
-        // zmq::message_t msg(req.dump().size());
-        // memcpy(msg.data(), req.dump().c_str(), req.dump().size());
+        zmq::message_t msg(req.dump().size());
+        memcpy(msg.data(), req.dump().c_str(), req.dump().size());
         
-        // socket.send(msg, zmq::send_flags::dontwait); // 非阻塞发送
-        // std::cout << "Sent request: " << req["path"] << std::endl;
- 
+        socket.send(msg, zmq::send_flags::dontwait); // 非阻塞发送
+        std::cout << "Sent request: " << req["path"] << std::endl;
+    #endif
     }
 }

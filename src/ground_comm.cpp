@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "ground_comm.hpp"
 //与地面通讯函数
 

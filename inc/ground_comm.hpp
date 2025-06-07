@@ -1,7 +1,7 @@
 #ifndef GROUND_COMM_HPP
 #define GROUND_COMM_HPP
 
-#include "config.hpp"
+
 #include "pic_process.hpp"
 
 void groundcomm_main();

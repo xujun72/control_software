@@ -13,9 +13,12 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
-
 #include "httplib.h"
 #include "json.hpp"
+
+
+
+#define TEST_VERSION       1
 
 //计算距离的误差值 >= errorvalue时，使用巡检数据。< errorvalue时，使用算法值
 #define DISTANCE_ERROR_VALUE       5
@@ -24,6 +27,10 @@
 #define DETECT_INSPECTION           1
 #define DETECT_GEOMETRY             2
 
+//单根枕木高度
+#define WOOD_HEIGHT                 190
+//枕木间隔距离
+#define WOOD_SPACE_DISTANCE         400
 
 #define COMM_STATE_OK               0
 #define COMM_STATE_NG               1
@@ -75,10 +82,13 @@ extern std::queue<Detect_fault_data> inspection_faultdata_queue;    //巡检故�
 extern std::queue<Detect_fault_data> geometry_faultdata_queue;      //几何故障数据队列
 
 
-
-//枕木数量计算 分辨率0.5
-extern uint16_t sleeper_number;
-
+//枕木数量计算 分辨率0.1
+extern uint16_t wood_number;
+extern uint8_t newstation_flag;
+//从文件名中获取距离
+extern uint32_t distance_file_recv;
+//通过枕木数量计算得出距离
+extern uint32_t distance_wood_calc;
 
 struct Recv_picinfo {
     int part_label;

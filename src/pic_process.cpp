@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include "pic_process.hpp"
 
 
@@ -34,6 +35,34 @@ uint32_t pic_distance(std::string& pic_name)
     return dist;
 }
 
+//替换file名称中距离数据
+std::string pic_filename_updatedistance(std::string& pic_name,uint32_t value)
+{
+    std::vector<std::string> parts;
+    std::stringstream ss(pic_name);
+    std::string segment;
+
+    // 使用'_'拆分字符串
+    while (std::getline(ss, segment, '_')) {
+        parts.push_back(segment);
+    }
+
+    // 至少需要12段以上，否则格式不对
+    if (parts.size() < 12) {
+        return pic_name; // 或者抛出异常
+    }
+
+    // 替换第7段（下标6）为新的 value 值
+    parts[6] = std::to_string(value);
+
+    // 重新组合为字符串
+    std::string result = parts[0];
+    for (size_t i = 1; i < parts.size(); ++i) {
+        result += "_" + parts[i];
+    }
+
+    return result;
+}
 
 // std::string str;         // 声明但不赋初值
 // char* cstr = (char*)"hello world"; 
